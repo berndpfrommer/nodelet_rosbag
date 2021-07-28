@@ -23,9 +23,10 @@ public:
     record_actionserver_(nh_, "record", false),
     start_actionserver_(nh_, "start", false),
     stop_actionserver_(nh_, "stop", false),
-    recording_(false) {
+    recording_(true) {
     private_nh_.getParam("rosbag_path", rosbag_path_);
     private_nh_.getParam("rosbag_record_topics", rosbag_record_topics_);
+    private_nh_.getParam("receive_queue_size", receive_queue_size_);
 
     record_actionserver_.registerGoalCallback(
       boost::bind(&NodeRosbagImpl::mode_callback, this));
@@ -73,6 +74,7 @@ private:
   rosbag::Bag bag_;
   std::string rosbag_path_;
   std::vector<std::string> rosbag_record_topics_;
+  int receive_queue_size_;
 
   bool recording_;
   boost::mutex rosbag_mode_mtx_;

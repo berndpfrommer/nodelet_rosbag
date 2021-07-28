@@ -14,13 +14,23 @@ namespace nodelet_rosbag
 {
   void NodeRosbagImpl::start_callback() {
     boost::mutex::scoped_lock(rosbag_mode_mtx_);
+    // TODO(esteve): add error recovery
+    if (bag_.isOpen()) {
+      bag_.close();
+    }
     if (recording_) {
+      bag_.open(rosbag_path_, rosbag::bagmode::Write);
       for(int i = 0; i < rosbag_record_topics_.size(); ++i) {
         ros::Subscriber subscriber = private_nh_.subscribe(
-          rosbag_record_topics_[i], 10, &NodeRosbagImpl::record_callback, this);
+          rosbag_record_topics_[i], receive_queue_size_,
+          &NodeRosbagImpl::record_callback, this);
         record_subscribers_.push_back(subscriber);
       }
     } else {
+      for(int i = 0; i < rosbag_record_topics_.size(); ++i) {
+        private_nh_.shutdown();
+      }
+      bag_.open(rosbag_path_, rosbag::bagmode::Read);
       rosbag::View view;
       ros::Time start_time = view.getBeginTime();
       ros::Time end_time = ros::TIME_MAX;
@@ -74,16 +84,6 @@ namespace nodelet_rosbag
   {
     boost::mutex::scoped_lock(rosbag_mode_mtx_);
     recording_ = !recording_;
-    // TODO(esteve): add error recovery
-    bag_.close();
-    if (recording_) {
-      bag_.open(rosbag_path_, rosbag::bagmode::Write);
-    } else {
-      for(int i = 0; i < rosbag_record_topics_.size(); ++i) {
-        private_nh_.shutdown();
-      }
-      bag_.open(rosbag_path_, rosbag::bagmode::Read);
-    }
   }
 
   void NodeRosbagImpl::record_callback(const ros::MessageEvent<topic_tools::ShapeShifter const> & event)
