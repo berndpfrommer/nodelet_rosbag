@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 2.8.3)
+cmake_minimum_required(VERSION 3.5)
 project(nodelet_rosbag)
 
 find_package(catkin REQUIRED COMPONENTS nodelet rosbag_storage roscpp std_msgs actionlib actionlib_msgs topic_tools)
